@@ -1,7 +1,7 @@
-const path = require('path');
-const fs = require('fs');
-const { parseSchema } = require('./parser');
-const { generateListFileContent } = require('./code-generator');
+import path from 'path';
+import fs from 'fs';
+import { parseSchema } from './parser.js';
+import { generateListFileContent } from './code-generator.js';
 
 function main() {
   console.log('Running listedb generator...');
@@ -36,10 +36,9 @@ function main() {
     console.log('\nCode generation complete.');
 
   } catch (error) {
-    // Since the user will handle execution, we log the error but don't exit hard.
-    // This allows them to see the error without stopping a potential chain of commands.
     console.error('\nAn error occurred during code generation:');
     console.error(error);
+    process.exit(1);
   }
 }
 

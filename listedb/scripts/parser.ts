@@ -1,28 +1,28 @@
-const ts = require('typescript');
-const path = require('path');
+import ts from 'typescript';
+import path from 'path';
 
-interface ParsedProperty {
+export interface ParsedProperty {
   name: string;
   type: string;
   isOptional: boolean;
 }
 
-interface ParsedInterface {
+export interface ParsedInterface {
   name: string;
   properties: ParsedProperty[];
 }
 
-interface ParsedEnum {
+export interface ParsedEnum {
   name: string;
   members: string[];
 }
 
-interface ParsedTypeAlias {
+export interface ParsedTypeAlias {
     name: string;
     type: string;
 }
 
-interface ParsedSchema {
+export interface ParsedSchema {
   interfaces: ParsedInterface[];
   enums: ParsedEnum[];
   typeAliases: ParsedTypeAlias[];
@@ -33,10 +33,10 @@ interface ParsedSchema {
  * @param filePath The path to the TypeScript schema file.
  * @returns A structured object representing the parsed schema.
  */
-function parseSchema(filePath: string): ParsedSchema {
+export function parseSchema(filePath: string): ParsedSchema {
   const program = ts.createProgram([filePath], {
     target: ts.ScriptTarget.ES2022,
-    module: ts.ModuleKind.CommonJS, // Adjusted for CommonJS
+    module: ts.ModuleKind.NodeNext,
   });
   const sourceFile = program.getSourceFile(filePath);
   const checker = program.getTypeChecker();
@@ -95,5 +95,3 @@ function parseSchema(filePath: string): ParsedSchema {
 
   return schema;
 }
-
-module.exports = { parseSchema };

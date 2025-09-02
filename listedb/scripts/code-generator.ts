@@ -1,4 +1,4 @@
-const { ParsedInterface, ParsedProperty, ParsedSchema } = require('./parser');
+import { ParsedInterface, ParsedProperty, ParsedSchema, ParsedEnum } from './parser.js';
 
 // --- Helper Functions ---
 
@@ -53,8 +53,7 @@ const SYSTEM_FIELDS = ['id', 'createdAt', 'updatedAt', 'history'];
 const isUserSettable = (p) => !SYSTEM_FIELDS.includes(p.name) && !p.type.includes('listedb.now') && !p.type.includes('listedb.updatedAt') && !p.type.includes('listedb.logs');
 
 function generateInputType(interfaceName, properties, type) {
-    // For CommonJS, we don't export interfaces, they are for type-checking during development
-    let content = `interface ${interfaceName}${type}Input {\n`;
+    let content = `export interface ${interfaceName}${type}Input {\n`;
     const relevantProps = properties.filter(isUserSettable);
 
     for (const prop of relevantProps) {
@@ -72,7 +71,7 @@ function generateInputType(interfaceName, properties, type) {
 
 // --- Main Generator ---
 
-function generateListFileContent(parsedInterface, allParsedEnums) {
+export function generateListFileContent(parsedInterface, allParsedEnums) {
     const { name: interfaceName, properties } = parsedInterface;
     const listName = interfaceName.toLowerCase();
     const listNamePlural = pluralize(listName);
@@ -85,15 +84,16 @@ function generateListFileContent(parsedInterface, allParsedEnums) {
         });
     });
     const imports = `
-const { listFactory } = require("../../src/core/list.factory");
-const { ${[...schemaImports].join(', ')} } = require("../../../listedb.schema");
+import { listFactory } from "../../src/core/list.factory.js";
+import type { ${interfaceName} } from "../../../listedb.schema.js";
+import { ${[...schemaImports].filter(i => i !== interfaceName).join(', ')} } from "../../../listedb.schema.js";
     `;
 
     // --- Generate Input Types ---
     const createInput = generateInputType(interfaceName, properties, 'Create');
     const updateInput = generateInputType(interfaceName, properties, 'Update');
-    const queryInput = `interface ${interfaceName}QueryInput {}`;
-    const uniqueQueryInput = `interface ${interfaceName}UniqueQueryInput {}`;
+    const queryInput = `export interface ${interfaceName}QueryInput {}`;
+    const uniqueQueryInput = `export interface ${interfaceName}UniqueQueryInput {}`;
 
     // --- Generate Options Object ---
     const primaryKey = getPrimaryKey(properties);
@@ -115,19 +115,14 @@ const options = {
 
     // --- Generate Factory Call ---
     const factoryCall = `
-module.exports.${listName}List = listFactory(options);
+export const ${listName}List = listFactory<
+  ${interfaceName},
+  ${interfaceName}CreateInput,
+  ${interfaceName}UpdateInput,
+  ${interfaceName}QueryInput,
+  ${interfaceName}UniqueQueryInput
+>(options);
     `;
 
-    // We also need to export the types for consumers of the list
-    const typeExports = `
-// Export types for external use
-module.exports.CreateInput = {} // Trick to allow type imports
-module.exports.UpdateInput = {}
-module.exports.QueryInput = {}
-module.exports.UniqueQueryInput = {}
-    `
-
-    return [imports, createInput, updateInput, queryInput, uniqueQueryInput, options, factoryCall, typeExports].join('\n\n');
+    return [imports, createInput, updateInput, queryInput, uniqueQueryInput, options, factoryCall].join('\n\n');
 }
-
-module.exports = { generateListFileContent };
