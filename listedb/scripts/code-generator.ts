@@ -49,23 +49,39 @@ function getPopulations(properties) {
     return populations;
 }
 
-const SYSTEM_FIELDS = ['id', 'createdAt', 'updatedAt', 'history'];
-const isUserSettable = (p) => !SYSTEM_FIELDS.includes(p.name) && !p.type.includes('listedb.now') && !p.type.includes('listedb.updatedAt') && !p.type.includes('listedb.logs');
+const isUserSettable = (p) => {
+    const systemTypes = ['listedb.id', 'listedb.logs', 'listedb.updatedAt', 'listedb.now'];
+    return !systemTypes.some(type => p.type.includes(type));
+};
 
 function generateInputType(interfaceName, properties, type) {
     let content = `export interface ${interfaceName}${type}Input {\n`;
-    const relevantProps = properties.filter(isUserSettable);
+    const relevantProps = type === 'Query' ? properties : properties.filter(isUserSettable);
 
     for (const prop of relevantProps) {
-        let propType = prop.type.replace(/listedb\.\w+<(\w+)>/g, '$1'); // Simplify relation types
+        let propType = prop.type.replace(/listedb\.\w+<(\w+)>/g, '$1');
         if (prop.type.includes('oneFrom') || prop.type.includes('manyFrom')) {
             propType = 'string | number';
         }
-        const optionalMarker = type === 'Update' || prop.isOptional ? '?' : '';
+        const optionalMarker = type === 'Update' || type === 'Query' || prop.isOptional ? '?' : '';
         content += `  ${prop.name}${optionalMarker}: ${propType};\n`;
     }
     content += '}';
     return content;
+}
+
+function generateUniqueQueryInput(interfaceName, properties) {
+    const uniqueProps = properties.filter(p => p.type.includes('listedb.id') || p.type.includes('listedb.unique'));
+    if (uniqueProps.length === 0) {
+        // If no unique fields, default to the primary key 'id' if it exists.
+        const idProp = properties.find(p => p.name === 'id');
+        if (idProp) uniqueProps.push(idProp);
+    }
+
+    if (uniqueProps.length === 0) return `export type ${interfaceName}UniqueQueryInput = never;`;
+
+    const types = uniqueProps.map(p => `{ ${p.name}: ${p.type.replace(/listedb\.\w+<(\w+)>/g, '$1')} }`);
+    return `export type ${interfaceName}UniqueQueryInput = ${types.join(' | ')};`;
 }
 
 
@@ -76,26 +92,19 @@ export function generateListFileContent(parsedInterface, allParsedEnums) {
     const listName = interfaceName.toLowerCase();
     const listNamePlural = pluralize(listName);
 
-    // --- Generate Imports ---
     const schemaImports = new Set([interfaceName]);
-    properties.forEach(p => {
-        allParsedEnums.forEach(e => {
-            if (p.type.includes(e.name)) schemaImports.add(e.name);
-        });
-    });
+    properties.forEach(p => { allParsedEnums.forEach(e => { if (p.type.includes(e.name)) schemaImports.add(e.name); }); });
     const imports = `
-import { listFactory } from "../../src/core/list.factory.js";
-import type { ${interfaceName} } from "../../../listedb.schema.js";
-import { ${[...schemaImports].filter(i => i !== interfaceName).join(', ')} } from "../../../listedb.schema.js";
+import { listFactory } from "../src/core/list.factory.js";
+import type { ${interfaceName} } from "../../listedb.schema.js";
+import { ${[...schemaImports].filter(i => i !== interfaceName).join(', ')} } from "../../listedb.schema.js";
     `;
 
-    // --- Generate Input Types ---
     const createInput = generateInputType(interfaceName, properties, 'Create');
     const updateInput = generateInputType(interfaceName, properties, 'Update');
-    const queryInput = `export interface ${interfaceName}QueryInput {}`;
-    const uniqueQueryInput = `export interface ${interfaceName}UniqueQueryInput {}`;
+    const queryInput = generateInputType(interfaceName, properties, 'Query');
+    const uniqueQueryInput = generateUniqueQueryInput(interfaceName, properties);
 
-    // --- Generate Options Object ---
     const primaryKey = getPrimaryKey(properties);
     const uniqueFields = getSimpleFields(properties, 'unique');
     const indexesFields = getSimpleFields(properties, 'index');
@@ -113,7 +122,6 @@ const options = {
 };
     `;
 
-    // --- Generate Factory Call ---
     const factoryCall = `
 export const ${listName}List = listFactory<
   ${interfaceName},
