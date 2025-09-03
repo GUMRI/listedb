@@ -1,3 +1,4 @@
+
 import ts from 'typescript';
 
 // --- New Structured Interfaces for Parsed Data ---
@@ -23,9 +24,17 @@ export interface ParsedEnum {
   node: ts.EnumDeclaration; // Keep the original node for the generator
 }
 
+export interface ParsedAlias {
+  name: string;
+  type: ParsedProperty;
+}
+
+
+
 export interface ParsedSchema {
   interfaces: ParsedInterface[];
   enums: ParsedEnum[];
+  aliases: ParsedAlias[];
 }
 
 // --- DSL Parsing Logic ---
@@ -68,7 +77,7 @@ export function parseSchema(filePath: string): ParsedSchema {
 
   if (!sourceFile) throw new Error(`Could not find source file: ${filePath}`);
 
-  const schema: ParsedSchema = { interfaces: [], enums: [] };
+  const schema: ParsedSchema = { interfaces: [], enums: [], aliases: [] };
 
   // First pass: collect all exported enums
   ts.forEachChild(sourceFile, node => {

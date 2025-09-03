@@ -1,4 +1,4 @@
-import { ParsedInterface, ParsedProperty, ParsedEnum } from './parser.js';
+import { ParsedInterface, ParsedProperty, ParsedEnum, ParsedAlias } from './parser.js';
 import ts from 'typescript';
 
 // --- Helper Functions ---
@@ -62,6 +62,7 @@ function generateEnums(usedEnumNames: string[], allEnums: ParsedEnum[]): string 
         return enumDef ? enumDef.node.getText() : '';
     }).join('\n\n');
 }
+
 
 function generateMainInterface(parsedInterface: ParsedInterface): string {
     let content = `export interface ${parsedInterface.name} {\n`;
