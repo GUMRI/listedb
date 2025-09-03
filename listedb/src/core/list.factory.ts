@@ -1,4 +1,4 @@
-import { item } from './listedb.namespace.js';
+import type { ListOptions } from './types.js';
 
 // This is a placeholder for the actual CRUD operations and state management.
 const crud = {
@@ -21,12 +21,12 @@ export interface ListRef<T> {
 }
 
 export function listFactory<
-  TMain extends item,
+  TMain,
   TCreate,
   TUpdate,
   TQuery,
   TUniqueQuery
->(options) {
+>(options: ListOptions) {
   // The actual implementation of the list factory will go here.
   console.log('List factory created with options:', options);
   return { ...crud, items, state } as any;
