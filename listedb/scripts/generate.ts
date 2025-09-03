@@ -18,10 +18,12 @@ function main() {
     }
 
     const parsedSchema = parseSchema(schemaPath);
-    console.log('Schema parsed successfully. Found interfaces:', parsedSchema.interfaces.map(i => i.name).join(', '));
+    const mainInterfaces = parsedSchema.interfaces.filter(i => i.isMain);
+
+    console.log('Schema parsed successfully. Found main interfaces to generate:', mainInterfaces.map(i => i.name).join(', '));
 
     console.log(`\nGenerating list files in ${outputPath}...`);
-    for (const iface of parsedSchema.interfaces) {
+    for (const iface of mainInterfaces) {
       const listName = iface.name.toLowerCase();
       console.log(`- Generating list for ${iface.name}...`);
 
