@@ -14,7 +14,7 @@ export interface ParsedProperty {
 
 export interface ParsedInterface {
   name: string;
-  isMain: boolean; // <-- New flag
+  isMain: boolean;
   node: ts.InterfaceDeclaration;
   properties: ParsedProperty[];
   usedEnums: string[];
@@ -99,7 +99,6 @@ export function parseSchema(filePath: string): ParsedSchema {
     const interfaceSymbol = checker.getSymbolAtLocation(node.name);
     if (!interfaceSymbol) return null;
 
-    // <-- New logic to check for 'extends listedb.item' -->
     const isMain = !!node.heritageClauses?.some(clause =>
         clause.types.some(type => type.expression.getText(sourceFile) === 'listedb.item')
     );
@@ -129,7 +128,7 @@ export function parseSchema(filePath: string): ParsedSchema {
 
     return {
       name,
-      isMain, // <-- Set the flag
+      isMain,
       node,
       properties,
       usedEnums: Array.from(usedEnums),

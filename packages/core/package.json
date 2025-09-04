@@ -1,0 +1,11 @@
+{
+  "name": "@listedb/core",
+  "version": "0.1.0",
+  "description": "Core runtime library for listedb",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "license": "MIT"
+}

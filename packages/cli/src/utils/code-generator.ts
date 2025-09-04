@@ -49,7 +49,7 @@ function generateImports(properties: ParsedProperty[]): string {
         }
     });
 
-    let importStatements = `import { Log, QueryInput, listFactory, ListOptions } from '../src/core/types.js';`;
+    let importStatements = `import { Log, QueryInput, listFactory, ListOptions } from '@listedb/core';`;
     for (const type of relationTypes) {
         importStatements += `\nimport type { ${type} } from './${type.toLowerCase()}.list.js';`;
     }

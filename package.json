@@ -1,25 +1,14 @@
 {
-  "name": "listedb",
-  "version": "0.0.1",
-  "description": "A local-first database library for front-end use.",
-  "author": "Jules",
-  "homepage": "https://github.com/GUMRI/listedb",
-  "license": "MIT",
-  "main": "dist/index.js",
-  "repository": "GUMRI/listedb",
-  "type": "module",
-  "engines": {
-    "node": ">=18.0.0"
-  },
+  "name": "listedb-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "tsc -b",
-    "generate": "node --loader ts-node/esm listedb/scripts/generate.ts"
-  },
-  "dependencies": {
-    "typescript": "^5.5.2",
-    "ts-node": "^10.9.2"
+    "build": "npm run build --workspace=@listedb/core && npm run build --workspace=@listedb/cli",
+    "generate": "npm run generate --workspace=@listedb/cli"
   },
   "devDependencies": {
-    "@types/node": "^18.19.39"
+    "typescript": "^5.5.2"
   }
 }

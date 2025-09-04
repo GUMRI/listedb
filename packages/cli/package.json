@@ -1,0 +1,45 @@
+{
+  "name": "@listedb/cli",
+  "version": "0.1.0",
+  "description": "CLI for listedb",
+  "author": "Jules",
+  "bin": {
+    "listedb": "./bin/run.js"
+  },
+  "homepage": "",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "repository": "",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -b",
+    "prepack": "npm run build",
+    "generate": "./bin/run.js generate",
+    "init": "./bin/run.js init"
+  },
+  "dependencies": {
+    "@listedb/core": "0.1.0",
+    "@oclif/core": "^3",
+    "@oclif/plugin-help": "^6",
+    "@oclif/plugin-plugins": "^5"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "oclif": "^4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.2"
+  },
+  "oclif": {
+    "bin": "listedb",
+    "dirname": "listedb-cli",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins"
+    ],
+    "topicSeparator": " "
+  }
+}

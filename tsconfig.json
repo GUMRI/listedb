@@ -1,19 +1,15 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "importHelpers": true,
+    "target": "es2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "dist",
-    "rootDir": ".",
     "strict": true,
-    "target": "es2022",
-    "composite": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"]
-  },
-  "include": [
-    "listedb/**/*"
-  ]
+    "forceConsistentCasingInFileNames": true,
+    "composite": true,
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "dist"
+  }
 }
