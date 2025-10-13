@@ -84,7 +84,16 @@ const foods = list(sFoods);
 
 // React (Hook-based)
 const { foods } = list(sFoods);
-// {foods().map(item => <li key={item.id}>)}
+// {foods().map(item => <li key:{item.id}>)}
+
+// vanilla reactive
+let ul = document.getElementById('list')
+const foods = list(sFood)
+foods((items) => {
+  for (let item of items) {
+    ul.append(`<li>${item.name}</li>`)
+  }
+})
 ```
 
 ### 4. Easy Reactive Filters
