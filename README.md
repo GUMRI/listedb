@@ -1,14 +1,33 @@
-> Current Date and Time (UTC): 2025-10-13 17:39:05  
+> Current Date and Time (UTC): 2025-10-13 20:09:33  
 > Current User: @GUMRI
 
 # Listed Framework
 
-**Listed Framework** is a frontend data management framework that simplifies working with listed data across different frontend frameworks.
+**Listed Framework** is a frontend listed data management framework that simplifies working with listed data across different frontend frameworks.
 
- 
+ة
+
 ## Features
 
-### 1. Sample CRUD Operations
+### 1. Simple Schema Definition
+
+```typescript copy
+const sFood = lSchema({
+  name: "foods",
+  fields: {
+    id: lField.id.autoincrement(),     // Auto increment ID
+    name: lField.index(z.string().max(10)),          // String with validation
+    price: z.number().min(0),          // Number with validation
+    createdAt: lField.now(),     // Automatic timestamp
+    category: lField.fromOne(() => sCategory), // population 
+  }
+});
+
+// Use the schema
+const foods = list(sFood);
+```
+
+### 2. Sample CRUD Operations
 
 ```typescript copy
 const foods = list(sFoods);
@@ -19,10 +38,14 @@ await foods.create({
 });
 
 // Read
-const allFoods = foods();
-const oneFood = await foods.findUnique({
+const allFoods = foods() // return reactive list;
+const oneFood = foods.findUnique({
   where: { id: 1 }
-});
+}) // rective unique item
+
+const oneFood = foods.findfirst({
+  where: { name: 'pizza' }
+}) // rective first item
 
 // Update
 await foods.update({
@@ -36,7 +59,7 @@ await foods.delete({
 });
 ```
 
-### 2. Reactive State Management
+### 3. Reactive State Management
 
 Works seamlessly across Angular, Vue, React, and Vanilla JS:
 
@@ -64,7 +87,7 @@ const { foods } = list(sFoods);
 // {foods().map(item => <li key={item.id}>)}
 ```
 
-### 3. Easy Reactive Filters
+### 4. Easy Reactive Filters
 
 ```typescript copy
 // Define filters
@@ -86,54 +109,23 @@ filters.update(v => ({
 }));
 ```
 
-### 4. Dynamic Field Data
-
-```typescript copy
-const sFood = lSchema({
-  name: "foods",
-  fields: {
-    id: lField.id.autoincrement(),
-    name: z.string().max(10),
-    createdAt: lField.createdAt(),
-    updatedAt: lField.updatedAt(),
-    category: lField.fromOne(() => sCategory),
-    ingredients: lField.fromMany(() => sIngredient)
-  }
-});
-```
-
-### 5. Schema Definition with Zod
-
-```typescript copy
-const sFood = lSchema({
-  name: "foods",
-  fields: {
-    name: z.string().min(3).max(50),
-    price: z.number().min(0),
-    description: z.string().optional(),
-    isVegetarian: z.boolean().default(false),
-    tags: z.array(z.string())
-  }
-});
-```
-
-### 6. Multiple Storage Options
+### 5. Multiple Storage Options
 
 ```typescript copy
 // Local Storage
 const localFoods = list(sFoods, {
-  storage: 'indexeddb'  // or 'sqlite'
+  source: 'indexeddb'  // or 'sqlite'
 });
 
 // Remote Storage
 const remoteFoods = list(sFoods, {
-  storage: 'rest',      // or 'graphql', 'firebase', 'supabase'
+  source: 'rest',      // or 'graphql', 'firebase', 'supabase'
   endpoint: 'https://api.example.com/foods'
 });
 
 // Synced Storage
 const syncedFoods = list(sFoods, {
-  storage: {
+  source: {
     local: 'indexeddb',
     remote: 'rest',
     sync: {
@@ -146,36 +138,31 @@ const syncedFoods = list(sFoods, {
 
 ## Key Features Summary
 
-1. **CRUD Operations**
+1. **Simple Schema Definition**
+   - Auto-incrementing IDs
+   - Built-in field types
+   - Zod validation
+   - Relationships support
+
+2. **CRUD Operations**
    - Simple and intuitive API
    - Type-safe operations
    - Automatic error handling
 
-2. **Reactive State**
+3. **Reactive State**
    - Framework-agnostic reactivity
    - Automatic UI updates
    - Built-in loading states
 
-3. **Dynamic Filters**
+4. **Dynamic Filters**
    - Real-time filtering
    - Complex queries support
    - Sortable and paginated results
 
-4. **Dynamic Fields**
-   - Auto-incrementing IDs
-   - Timestamps (createdAt, updatedAt)
-   - Relationships (one-to-one, one-to-many)
-   - Custom field types
-
-5. **TypeScript & Zod Integration**
-   - Full type safety
-   - Runtime validation
-   - Auto-completion support
-
-6. **Storage Options**
+5. **Storage Options**
    - Local: IndexedDB, SQLite
    - Remote: REST, GraphQL, Firebase, Supabase
-   - Sync: Automatic synchronization between local and remote
+   - Sync: Automatic synchronization
 
 ## Notes
 - Zero configuration needed
@@ -186,4 +173,4 @@ const syncedFoods = list(sFoods, {
 - Offline-first capability
 
 ---
-<sub>Generated with ❤️ by Listed Framework | Last updated: 2025-10-13 17:39:05 UTC</sub>
+<sub>Generated with ❤️ by Listed Framework | Last updated: 2025-10-13 20:09:33 UTC</sub>
