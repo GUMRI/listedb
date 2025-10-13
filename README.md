@@ -1,152 +1,189 @@
+> Current Date and Time (UTC): 2025-10-13 17:39:05  
+> Current User: @GUMRI
+
 # Listed Framework
 
-> Last updated: 2025-10-13 16:50:59 UTC by @GUMRI
+**Listed Framework** is a frontend data management framework that simplifies working with listed data across different frontend frameworks.
 
-**Listed Framework** provides unified state management across Angular, Vue, and React with a consistent reactive API.
+ 
+## Features
 
-## Reactive State Management
-
-Listed Framework handles all state management needs with a unified API that adapts to each framework's paradigm:
-
-### Common Pattern Across Frameworks
+### 1. Sample CRUD Operations
 
 ```typescript copy
 const foods = list(sFoods);
 
-// Reactive Data
-foods()        // Returns reactive list
-foods.loading() // Returns reactive loading state
-foods.error()   // Returns reactive error state
+// Create
+await foods.create({
+  data: { name: 'pizza' }
+});
+
+// Read
+const allFoods = foods();
+const oneFood = await foods.findUnique({
+  where: { id: 1 }
+});
+
+// Update
+await foods.update({
+  where: { id: 1 },
+  data: { name: 'pizza 🍕' }
+});
+
+// Delete
+await foods.delete({
+  where: { id: 1 }
+});
 ```
 
-### Angular Example
+### 2. Reactive State Management
+
+Works seamlessly across Angular, Vue, React, and Vanilla JS:
 
 ```typescript copy
+// Angular (Signal-based)
 @Component({
-  selector: 'app-foods',
-  standalone: true,
   template: `
-    <!-- Reactive List -->
     <ul>
       @for(item of foods(); track item.id) {
         <li>{{ item.name }}</li>
       }
     </ul>
-
-    <!-- Reactive Loading -->
-    @if (foods.loading()) {
-      <div>Loading...</div>
-    }
-
-    <!-- Reactive Error -->
-    @if (foods.error()) {
-      <div>Error: {{ foods.error() }}</div>
-    }
   `
 })
-export class Foods {
-  foods = list(sFoods);  // Signal-based reactivity
+class FoodComponent {
+  foods = list(sFoods);
 }
-```
 
-### Vue Example
-
-```vue copy
-<script setup lang="ts">
-const foods = list(sFoods)  // Ref-based reactivity
-</script>
-
-<template>
-  <!-- Reactive List -->
-  <ul>
-    <li v-for="item in foods()" :key="item.id">
-      {{ item.name }}
-    </li>
-  </ul>
-
-  <!-- Reactive Loading -->
-  <div v-if="foods.loading()">Loading...</div>
-
-  <!-- Reactive Error -->
-  <div v-if="foods.error()">
-    Error: {{ foods.error() }}
-  </div>
-</template>
-```
-
-### React Example
-
-```tsx copy
-function FoodList() {
-  const foods = list(sFoods);  // Hook-based reactivity
-
-  return (
-    <>
-      {/* Reactive List */}
-      <ul>
-        {foods().map(item => (
-          <li key={item.id}>{item.name}</li>
-        ))}
-      </ul>
-
-      {/* Reactive Loading */}
-      {foods.loading() && <div>Loading...</div>}
-
-      {/* Reactive Error */}
-      {foods.error() && (
-        <div>Error: {foods.error()}</div>
-      )}
-    </>
-  );
-}
-```
-
-## Key Features
-
-### 1. Unified Reactive API
-```typescript copy
-// Works the same in all frameworks
+// Vue (Ref-based)
 const foods = list(sFoods);
+// <li v-for="item in foods()" :key="item.id">
 
-// Reactive Data
-foods()                // Get current data
-foods.loading()        // Get loading state
-foods.error()          // Get error state
-
-// Mutations
-await foods.create({ data: { name: 'Pizza' } })
-await foods.update({ where: { id: 1 }, data: { name: 'Super Pizza' } })
-await foods.delete({ where: { id: 1 } })
+// React (Hook-based)
+const { foods } = list(sFoods);
+// {foods().map(item => <li key={item.id}>)}
 ```
 
-### 2. Framework-Specific Integration
-- **Angular**: Integrates with Signals
-- **Vue**: Works with Ref system
-- **React**: Compatible with Hooks
+### 3. Easy Reactive Filters
 
-### 3. Automatic State Updates
 ```typescript copy
-// State updates automatically in all frameworks
-foods.create({ data: { name: 'Pizza' } })
-// UI updates automatically without manual intervention
+// Define filters
+const filters = signal<LFilterInput>({});
+const foods = list(sFoods, filters);
+
+// Update filters reactively
+filters.update(v => ({
+  where: {
+    price: {
+      gte: 10,
+      lte: 20
+    },
+    category: 'pizza'
+  },
+  orderBy: {
+    createdAt: 'desc'
+  }
+}));
 ```
 
-### 4. Built-in Loading & Error States
+### 4. Dynamic Field Data
+
 ```typescript copy
-// Automatic loading states
-foods.loading() // true during operations
-
-// Automatic error handling
-foods.error() // catches and exposes errors
+const sFood = lSchema({
+  name: "foods",
+  fields: {
+    id: lField.id.autoincrement(),
+    name: z.string().max(10),
+    createdAt: lField.createdAt(),
+    updatedAt: lField.updatedAt(),
+    category: lField.fromOne(() => sCategory),
+    ingredients: lField.fromMany(() => sIngredient)
+  }
+});
 ```
+
+### 5. Schema Definition with Zod
+
+```typescript copy
+const sFood = lSchema({
+  name: "foods",
+  fields: {
+    name: z.string().min(3).max(50),
+    price: z.number().min(0),
+    description: z.string().optional(),
+    isVegetarian: z.boolean().default(false),
+    tags: z.array(z.string())
+  }
+});
+```
+
+### 6. Multiple Storage Options
+
+```typescript copy
+// Local Storage
+const localFoods = list(sFoods, {
+  storage: 'indexeddb'  // or 'sqlite'
+});
+
+// Remote Storage
+const remoteFoods = list(sFoods, {
+  storage: 'rest',      // or 'graphql', 'firebase', 'supabase'
+  endpoint: 'https://api.example.com/foods'
+});
+
+// Synced Storage
+const syncedFoods = list(sFoods, {
+  storage: {
+    local: 'indexeddb',
+    remote: 'rest',
+    sync: {
+      auto: true,
+      interval: 5000  // sync every 5 seconds
+    }
+  }
+});
+```
+
+## Key Features Summary
+
+1. **CRUD Operations**
+   - Simple and intuitive API
+   - Type-safe operations
+   - Automatic error handling
+
+2. **Reactive State**
+   - Framework-agnostic reactivity
+   - Automatic UI updates
+   - Built-in loading states
+
+3. **Dynamic Filters**
+   - Real-time filtering
+   - Complex queries support
+   - Sortable and paginated results
+
+4. **Dynamic Fields**
+   - Auto-incrementing IDs
+   - Timestamps (createdAt, updatedAt)
+   - Relationships (one-to-one, one-to-many)
+   - Custom field types
+
+5. **TypeScript & Zod Integration**
+   - Full type safety
+   - Runtime validation
+   - Auto-completion support
+
+6. **Storage Options**
+   - Local: IndexedDB, SQLite
+   - Remote: REST, GraphQL, Firebase, Supabase
+   - Sync: Automatic synchronization between local and remote
 
 ## Notes
-- No need for external state management libraries
-- Framework-specific optimizations built-in
-- Consistent API across all frameworks
-- Automatic reactivity handling
-- Built-in TypeScript support
 - Zero configuration needed
+- Framework-specific optimizations
+- Automatic state management
+- Built-in TypeScript support
+- Flexible storage options
+- Offline-first capability
 
 ---
-<sub>Generated with ❤️ by Listed Framework | Last updated: 2025-10-13 16:50:59 UTC</sub>
+<sub>Generated with ❤️ by Listed Framework | Last updated: 2025-10-13 17:39:05 UTC</sub>
