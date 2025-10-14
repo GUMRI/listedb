@@ -30,6 +30,7 @@ const foods = list(sFood);
 ### 2. Sample CRUD Operations
 
 ```typescript copy
+
 const foods = list(sFoods);
 
 // Create
@@ -65,6 +66,7 @@ Works seamlessly across Angular, Vue, React, and Vanilla JS:
 
 ```typescript copy
 // Angular (Signal-based)
+lSettings.add(LAngularReactive)
 @Component({
   template: `
     <ul>
@@ -79,10 +81,12 @@ class FoodComponent {
 }
 
 // Vue (Ref-based)
+lSettings.add(LVueReactive)
 const foods = list(sFoods);
 // <li v-for="item in foods()" :key="item.id">
 
 // React (Hook-based)
+lSettings.add(LReactReactive)
 const { foods } = list(sFoods);
 // {foods().map(item => <li key:{item.id}>)}
 
