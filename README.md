@@ -162,21 +162,28 @@ const syncedFoods = list(sFoods, {
    - Type-safe operations
    - Automatic error handling
    - customize return values
-3. **Reactive State**
+
+3. **Data flow strategies options**
+   - local only
+   - online only
+   - local-first/offline-first
+   - remote with cache/presence
+5. **Reactive State**
    - Framework-agnostic reactivity
    - real-time Automatic UI updates
    - Built-in states
-
-4. **Dynamic Filters**
+   - multi-tab sync in background use native API (shared Worker)
+   - custom memory size used
+6. **Dynamic Filters**
    - Real-time filtering
    - Complex queries support
    - Sortable and paginated results
 
-5. **source Options**
+7. **source Options**
    - Local: IndexedDB, SQLite
    - Remote: REST, GraphQL, Firebase, Supabase
    - Sync: Automatic synchronization
-
+     
 ## Notes
 - Zero configuration needed
 - Framework-specific optimizations
