@@ -60,7 +60,7 @@ await foods.delete({
 });
 ```
 
-### 3. Reactive State Management
+### 3. cross framework Reactive 
 
 Works seamlessly across Angular, Vue, React, and Vanilla JS:
 
