@@ -66,7 +66,7 @@ Works seamlessly across Angular, Vue, React, and Vanilla JS:
 
 ```typescript copy
 // Angular (Signal-based)
-lSettings.add(LAngularReactive)
+lSettings.reactive(LAngularReactive)
 @Component({
   template: `
     <ul>
@@ -81,12 +81,12 @@ class FoodComponent {
 }
 
 // Vue (Ref-based)
-lSettings.add(LVueReactive)
+lSettings.reactive(LVueReactive)
 const foods = list(sFoods);
 // <li v-for="item in foods()" :key="item.id">
 
 // React (Hook-based)
-lSettings.add(LReactReactive)
+lSettings.reactive(LReactReactive)
 const { foods } = list(sFoods);
 // {foods().map(item => <li key:{item.id}>)}
 
