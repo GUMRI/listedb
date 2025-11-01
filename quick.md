@@ -31,7 +31,7 @@ import type {
   LCreateInputType, 
   LUpdateInputType,
   LUniqueFilterType,
-} from '@listed/core';
+} from '@listed/types';
 import { LAngularReactive } from '@listed/angular';
 
 // register reactive implementation (Angular example)
