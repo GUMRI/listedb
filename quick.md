@@ -33,7 +33,7 @@ import type {
   LUniqueFilterType,
 } from '@listed/types';
 import { LAngularReactive } from '@listed/angular';
-
+import {LInd}
 // register reactive implementation (Angular example)
 lSitting.reactive(new LAngularReactive(Injector));
 
