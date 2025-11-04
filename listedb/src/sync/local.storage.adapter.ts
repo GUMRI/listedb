@@ -40,10 +40,21 @@ export class LocalStorageAdapter extends LocalAdapter {
     }
 
     private uint8ArrayToBase64(array: Uint8Array): string {
-        return Buffer.from(array).toString('base64');
+        let binary = '';
+        const len = array.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(array[i]);
+        }
+        return window.btoa(binary);
     }
 
     private base64ToUint8Array(base64: string): Uint8Array {
-        return new Uint8Array(Buffer.from(base64, 'base64'));
+        const binary_string = window.atob(base64);
+        const len = binary_string.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binary_string.charCodeAt(i);
+        }
+        return bytes;
     }
 }
