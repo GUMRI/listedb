@@ -1,0 +1,6 @@
+{
+  "name": "listedb",
+  "version": "0.0.1",
+  "main": "src/sync/listedb.ts",
+  "types": "src/sync/listedb.ts"
+}

@@ -1,14 +1,14 @@
-import * as Automerge from '@automerge/automerge/wasm_bundle';
+import * as Automerge from '@automerge/automerge/slim/bundler';
 import { v4 as uuidv4 } from 'uuid';
 import { LocalAdapter, RemoteAdapter } from './adapters.js';
 import { Schema } from './types.js';
-import { EventEmitter } from 'events';
+import { EventEmitter } from './event-emitter.js';
 
 export class SyncEngine<T extends { [key: string]: any }> {
     private doc: Automerge.Doc<T>;
     private syncStates: Map<string, Automerge.SyncState> = new Map();
     private peerId: string;
-    private eventEmitter = new EventEmitter();
+    private eventEmitter = new EventEmitter<Automerge.Doc<T>>();
 
     constructor(
         private schema: Schema,

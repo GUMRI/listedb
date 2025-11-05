@@ -24,7 +24,7 @@ export async function list<T extends { [key: string]: any }>(
   schema: Schema,
   filters?: any,
   options?: {
-    source?: 'indexeddb' | 'sqlite' | 'rest' | 'graphql' | 'firebase' | 'supabase' | { local: 'memory' | 'localStorage'; remote: 'rest'; sync: { auto: boolean; interval: number } };
+    source?: { local: 'memory' | 'localStorage'; remote: 'rest' };
     endpoint?: string;
   }
 ) {
