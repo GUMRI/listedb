@@ -65,10 +65,15 @@ const photo = lField.file();
 
 // relation / population example (many -> posts)
 const posts = lField.manyFrom(() => sPost); // sPost must be defined similarly
+const clientsNotes = lFiled.collaborativeText()
+const chefsNotes = lField.richText()
 
+const logs = field.logs()
+const likes  = lField.count()
 // define schema
 const sUser = lSchema({
   name: 'users',
+  softDelete: true,
   fields: {
     id,
     username,
@@ -76,7 +81,11 @@ const sUser = lSchema({
     age,
     photo,
     createdAt,
-    posts
+    posts,
+    clientsNotes,
+    ChefsNotes,
+    logs,
+    likes,
   }
 });
 ```
