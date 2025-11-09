@@ -1,4 +1,4 @@
-
+listedb library - sync manager section 
 Goal:
 Design a SyncManager responsible for synchronizing data between a localAdapter (IndexedDB/SQLite) and a remoteAdapter (Firestore, Supabase, GraphQL, etc.). The system is central-data-based, not peer-to-peer. Each list in the system has its own dedicated SyncManager that handles two-way synchronization.
 
