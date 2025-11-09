@@ -1,19 +1,78 @@
-You are tasked to design and implement a **SyncManager** class for a "local-first / offline-first" application. 
-The SyncManager is responsible for synchronizing a **single List/Collection** between a **local adapter** (IndexedDB, SQLite, or LocalForage) and a **remote adapter** (Firestore, Supabase, GraphQL, etc.) using **Automerge**. 
 
-### Requirements:
+Goal:
+Design a SyncManager responsible for synchronizing data between a localAdapter (IndexedDB/SQLite) and a remoteAdapter (Firestore, Supabase, GraphQL, etc.). The system is central-data-based, not peer-to-peer. Each list in the system has its own dedicated SyncManager that handles two-way synchronization.
 
-1. **Architecture**
-   - Each List/Collection has its own SyncManager instance.
-   - The SyncManager should be fully independent from any UI.
-   - Use **Automerge Docs** for items, and maintain **heads** as checkpoints.
-   - Track local changes in a **queue** before pushing.
-   - Support **bootstrap, pull, push, watchRemote, merge, hasLocalChange, hasRemoteChange, isOnline**.
+---
 
-2. **Lifecycle**
-   - **bootstrap()**
-     - Load remote items initially.
-     - If local changes exist → push them.
+Core Responsibilities:
+1. bootstrap() — Load initial data and detect divergence. If local changes exist, push them. If remote changes exist, pull them.
+2. watchRemote() — Continuously listen for remote data changes via stream or subscription.
+3. handleMutations() — Capture and push local changes to remote.
+4. hasLocalChange() & hasRemoteChange() — Determine if synchronization is required before each cycle.
+5. isOnline() — Verify connectivity before performing remote operations.
+
+---
+
+Remote Adapter Capabilities:
+The remoteAdapter must expose a consistent interface to handle synchronization logic for central data storage:
+- watch(collection): Stream live changes from remote source.
+- mutations(type, payload): Apply create/update/delete operations.
+- transaction(fn): Ensure atomic batch updates.
+- query(params): Run filters or comparison queries for checkpoints or conflicts.
+- getSnapshot(): Fetch raw collection data for bootstrap.
+
+---
+
+Data Representation:
+Data in remote storage must be structured as tables (rows) or collections (documents) rather than raw CRDT states. CRDT metadata can be stored optionally to track version and merge status, depending on merge policies.
+
+Example structure:
+{
+  id: "order_10",
+  data: {...},
+  crdt: {
+    heads: [...],
+    updatedAt: number,
+    deleted: boolean
+  }
+}
+
+Automerge will represent CRDTs through SyncMessages and state management using:
+- decodeSyncState()
+- encodeSyncState()
+- generateSyncMessage()
+- hasOurChanges()
+- initSyncState()
+- receiveSyncMessage()
+
+---
+
+Merge State Analysis:
+Before any merge operation, the SyncManager must determine the item state to decide the correct synchronization action.
+
+State | Description | Action
+🟢 Local only | Exists only locally (new, not uploaded) | push() to remote
+🔵 Remote only | Exists only remotely (new from another source) | pull() to local
+🟡 Both — same heads | Identical versions | no action
+🟠 Both — diverged heads | Independent changes on both sides | merge() via Automerge
+🔴 Both — deleted in one side | Deleted on one side only | apply delete policy
+
+---
+
+Merge Policies:
+SyncManager applies merge policies based on the granularity of change and list configuration.
+
+Level | Policy | Description
+🧱 Field Level | CRDT / Automerge-native | Use built-in CRDT merge (LWW, counter, text, etc.)
+🧾 Item Level | Structural merge | Compare heads and apply Automerge.merge()
+📚 List Level | Batch merge | Merge multiple documents in a single sync operation
+🧰 DB Level | Transactional merge | Commit merge inside one transaction in local database
+
+---
+
+Summary:
+SyncManager acts as the synchronization orchestrator between local and remote states. It relies on Automerge’s CRDT mechanisms to resolve conflicts deterministically, applies merge policies depending on data type and scope, and ensures data consistency through controlled bootstrap, streaming, and transactional operations.
+`;     - If local changes exist → push them.
      - If remote changes exist → pull them.
      - Update local checkpoint.
    - **watchRemote()**
