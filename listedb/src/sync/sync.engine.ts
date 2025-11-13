@@ -1,14 +1,14 @@
-import * as Automerge from '@automerge/automerge/wasm_bundle';
+import * as Automerge from '@automerge/automerge/slim/bundler';
 import { v4 as uuidv4 } from 'uuid';
 import { LocalAdapter, RemoteAdapter } from './adapters.js';
 import { Schema } from './types.js';
-import { EventEmitter } from 'events';
+import { EventEmitter } from './event-emitter.js';
 
 export class SyncEngine<T extends { [key: string]: any }> {
     private doc: Automerge.Doc<T>;
     private syncStates: Map<string, Automerge.SyncState> = new Map();
     private peerId: string;
-    private eventEmitter = new EventEmitter();
+    private eventEmitter = new EventEmitter<Automerge.Doc<T>>();
 
     constructor(
         private schema: Schema,
@@ -19,8 +19,12 @@ export class SyncEngine<T extends { [key: string]: any }> {
     }
 
     async init(): Promise<void> {
-        const doc = await this.localAdapter.get<T>(this.schema.name);
-        this.doc = doc ? Automerge.load(Automerge.save(doc)) : Automerge.init<T>();
+        let doc = await this.localAdapter.get<T>(this.schema.name);
+        if (!doc) {
+            doc = Automerge.from({ [this.schema.name]: [], metadata: { count: 0 } });
+            await this.localAdapter.set(this.schema.name, doc);
+        }
+        this.doc = doc;
         this.remoteAdapter.connect(this);
     }
 
@@ -31,6 +35,7 @@ export class SyncEngine<T extends { [key: string]: any }> {
                 d[this.schema.name] = [];
             }
             d[this.schema.name].push(newItem);
+            d.metadata.count = d[this.schema.name].length;
         });
         await this.localAdapter.set(this.schema.name, this.doc);
         this.eventEmitter.emit('change', this.doc);
@@ -42,7 +47,7 @@ export class SyncEngine<T extends { [key: string]: any }> {
             const list = d[this.schema.name] as any[];
             const index = list.findIndex(i => i.id === id);
             if (index > -1) {
-                list[index] = { ...list[index], ...this.applySchemaDefaults(item, true) };
+                Object.assign(list[index], this.applySchemaDefaults(item, true));
             }
         });
         await this.localAdapter.set(this.schema.name, this.doc);
@@ -57,6 +62,7 @@ export class SyncEngine<T extends { [key: string]: any }> {
             if (index > -1) {
                 list.splice(index, 1);
             }
+            d.metadata.count = list.length;
         });
         await this.localAdapter.set(this.schema.name, this.doc);
         this.eventEmitter.emit('change', this.doc);
@@ -69,19 +75,19 @@ export class SyncEngine<T extends { [key: string]: any }> {
         this.setSyncState(this.peerId, nextSyncState);
 
         if (message) {
-            this.remoteAdapter.send(message);
+            await this.remoteAdapter.send(message);
         }
 
         const queuedMessages = await this.localAdapter.getQueuedMessages();
-        if(queuedMessages.length > 0) {
+        if (queuedMessages.length > 0) {
             await Promise.all(queuedMessages.map(msg => this.remoteAdapter.send(msg)));
             this.localAdapter.clearQueuedMessages();
         }
     }
 
-    receive(messages: Uint8Array[]): void {
+    async receive(messages: Uint8Array[]): Promise<void> {
         for (const message of messages) {
-            const syncState = this.getSyncState(this.peerId);
+            const syncState = await this.getSyncState(this.peerId);
             const [nextDoc, nextSyncState] = Automerge.receiveSyncMessage(this.doc, syncState, message);
             this.doc = nextDoc;
             this.setSyncState(this.peerId, nextSyncState);
@@ -131,9 +137,6 @@ export class SyncEngine<T extends { [key: string]: any }> {
             }
             if (meta.updatedAt) {
                 newItem[field] = new Date().toISOString();
-            }
-            if (meta.count) {
-                newItem[field] = (this.doc[this.schema.name] as any[])?.length || 0;
             }
         }
         return newItem as T;

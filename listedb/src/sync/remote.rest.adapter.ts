@@ -3,19 +3,16 @@ import { SyncEngine } from './sync.engine.js';
 
 export class RemoteRestAPIsAdapter extends RemoteAdapter {
     private syncEngine: SyncEngine<any> | null = null;
-    private pollingInterval: NodeJS.Timeout | null = null;
 
-    constructor(private url: string, private pollIntervalMs = 5000) {
+    constructor(private url: string) {
         super();
     }
 
     connect(syncEngine: SyncEngine<any>): void {
         this.syncEngine = syncEngine;
-        this.startPolling();
     }
 
     disconnect(): void {
-        this.stopPolling();
         this.syncEngine = null;
     }
 
@@ -38,33 +35,8 @@ export class RemoteRestAPIsAdapter extends RemoteAdapter {
         } catch (error) {
             console.error('Error sending message:', error);
             this.syncEngine?.queueMessage(message);
+            throw error;
         }
     }
 
-    private startPolling(): void {
-        this.pollingInterval = setInterval(() => this.poll(), this.pollIntervalMs);
-    }
-
-    private stopPolling(): void {
-        if (this.pollingInterval) {
-            clearInterval(this.pollingInterval);
-            this.pollingInterval = null;
-        }
-    }
-
-    private async poll(): Promise<void> {
-        if (!this.syncEngine) return;
-
-        try {
-            const messages = await this.syncEngine.getQueuedMessages();
-            if (messages.length > 0) {
-                await Promise.all(messages.map(message => this.send(message)));
-                this.syncEngine.clearQueuedMessages();
-            } else {
-                this.send(new Uint8Array());
-            }
-        } catch (error) {
-            console.error('Error polling for messages:', error);
-        }
-    }
 }
